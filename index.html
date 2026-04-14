@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>교실 사용 현황</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; }
+        .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; padding: 20px; }
+        .day { border: 1px solid #ddd; padding: 10px; min-height: 150px; border-radius: 8px; }
+        .slot { display: flex; align-items: center; justify-content: space-between; margin: 5px 0; font-size: 12px; }
+        .light { width: 12px; height: 12px; border-radius: 50%; }
+        /* 신호등 색상 */
+        .red { background: #ff4d4d; box-shadow: 0 0 5px #ff4d4d; }   /* 사용중 */
+        .blue { background: #4da6ff; box-shadow: 0 0 5px #4da6ff; }  /* 미사용 */
+        .purple { background: #b366ff; box-shadow: 0 0 5px #b366ff; } /* 보류 */
+    </style>
+</head>
+<body>
+    <h1>교실 사용 현황판</h1>
+    <div id="calendar" class="calendar"></div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwMi1_SvvjSck0TgdpmxtTJ4HfQjOlsGtaMl3Z5P8goBgKH9o4kr72pkdKFxz1GAQw/exec"; // 여기에 아까 복사한 주소 넣기
+
+        async function loadData() {
+            const response = await fetch(SCRIPT_URL);
+            const data = await response.json();
+            renderCalendar(data);
+        }
+
+        function renderCalendar(data) {
+            const cal = document.getElementById('calendar');
+            // 예시로 1일부터 30일까지 생성
+            for (let i = 1; i <= 30; i++) {
+                let dayHtml = `<div class="day"><strong>${i}일</strong>`;
+                for (let p = 1; p <= 6; p++) {
+                    // 데이터에서 해당 날짜/교시 찾기
+                    const info = data.find(d => new Date(d.date).getDate() == i && d.period == p);
+                    
+                    let statusClass = "blue";
+                    let text = "미사용";
+                    if (info) {
+                        statusClass = info.status === "보류" ? "purple" : "red";
+                        text = info.info;
+                    }
+                    
+                    dayHtml += `
+                        <div class="slot">
+                            <span>${p}교시: ${text}</span>
+                            <div class="light ${statusClass}"></div>
+                        </div>`;
+                }
+                dayHtml += `</div>`;
+                cal.innerHTML += dayHtml;
+            }
+        }
+        loadData();
+    </script>
+</body>
+</html>
